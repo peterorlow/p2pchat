@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0E12">
+<title>Secure Link</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot" id="statusDot"></span>
+      <span class="brand-name">SECURE LINK</span>
+    </div>
+    <span class="build-tag">peer-to-peer &middot; no server</span>
+  </header>
+
+  <!-- SCREEN: HOME -->
+  <section class="screen" id="screen-home" data-active="true">
+    <div class="handshake-art" id="homeArt">
+      <svg viewBox="0 0 320 120" class="handshake-svg">
+        <circle cx="60" cy="60" r="26" class="node node-a"/>
+        <text x="60" y="66" class="node-label">A</text>
+        <circle cx="260" cy="60" r="26" class="node node-b"/>
+        <text x="260" y="66" class="node-label">B</text>
+        <line x1="88" y1="60" x2="232" y2="60" class="link-line idle" id="homeLinkLine"/>
+      </svg>
+    </div>
+
+    <p class="lede">Messages travel straight between two devices, encrypted end-to-end. Nothing is stored or relayed by a server.</p>
+
+    <div class="stack">
+      <button class="btn btn-primary" id="btnStart">Start a new chat</button>
+      <button class="btn btn-ghost" id="btnJoin">Join a chat someone started</button>
+    </div>
+
+    <details class="how-it-works">
+      <summary>How the connection works</summary>
+      <ol>
+        <li>One phone taps <em>Start</em> and generates a connection code.</li>
+        <li>Share that code with the other phone — QR, AirDrop, text, in person.</li>
+        <li>The other phone taps <em>Join</em>, enters the code, and generates a reply code.</li>
+        <li>Send the reply code back. The two phones link up directly.</li>
+        <li>Compare the safety number out loud once to confirm no one tampered with the codes.</li>
+      </ol>
+    </details>
+  </section>
+
+  <!-- SCREEN: OFFER (Start flow, step 1) -->
+  <section class="screen" id="screen-offer">
+    <button class="back-btn" data-back="screen-home">&larr; Back</button>
+    <h1 class="screen-title">Connection code</h1>
+    <p class="screen-sub" id="offerStatus">Preparing your code&hellip;</p>
+
+    <div class="code-block" id="offerCodeWrap" hidden>
+      <textarea class="code-text" id="offerCode" readonly rows="4"></textarea>
+      <div class="code-actions">
+        <button class="btn btn-small" id="copyOffer">Copy</button>
+        <button class="btn btn-small" id="shareOffer">Share</button>
+        <button class="btn btn-small" id="qrOffer">Show QR</button>
+      </div>
+      <div class="qr-wrap" id="offerQrWrap" hidden><div id="offerQr"></div></div>
+    </div>
+
+    <p class="hint">Send this code to the other phone. Then paste their reply below.</p>
+
+    <label class="field-label" for="answerInput">Their reply code</label>
+    <textarea class="code-text" id="answerInput" rows="4" placeholder="Paste the reply code here&hellip;"></textarea>
+    <button class="btn btn-small" id="scanAnswer">Scan QR instead</button>
+    <button class="btn btn-primary" id="btnCompleteOffer">Connect</button>
+  </section>
+
+  <!-- SCREEN: JOIN (Join flow) -->
+  <section class="screen" id="screen-join">
+    <button class="back-btn" data-back="screen-home">&larr; Back</button>
+    <h1 class="screen-title">Join a chat</h1>
+    <p class="screen-sub">Paste the code the other phone sent you.</p>
+
+    <label class="field-label" for="offerInput">Their connection code</label>
+    <textarea class="code-text" id="offerInput" rows="4" placeholder="Paste the connection code here&hellip;"></textarea>
+    <button class="btn btn-small" id="scanOffer">Scan QR instead</button>
+    <button class="btn btn-primary" id="btnGenerateAnswer">Generate reply code</button>
+
+    <div class="code-block" id="answerCodeWrap" hidden>
+      <p class="screen-sub" id="answerStatus">Preparing your reply&hellip;</p>
+      <textarea class="code-text" id="answerCode" readonly rows="4"></textarea>
+      <div class="code-actions">
+        <button class="btn btn-small" id="copyAnswer">Copy</button>
+        <button class="btn btn-small" id="shareAnswer">Share</button>
+        <button class="btn btn-small" id="qrAnswer">Show QR</button>
+      </div>
+      <div class="qr-wrap" id="answerQrWrap" hidden><div id="answerQr"></div></div>
+      <p class="hint">Send this reply back. Your chat opens automatically once they connect.</p>
+    </div>
+  </section>
+
+  <!-- SCREEN: SCANNER (shared) -->
+  <section class="screen" id="screen-scan">
+    <button class="back-btn" id="scanBack">&larr; Back</button>
+    <h1 class="screen-title">Scan QR code</h1>
+    <div class="scan-wrap">
+      <video id="scanVideo" playsinline muted></video>
+      <div class="scan-frame"></div>
+    </div>
+    <p class="hint">Point the camera at the other phone's QR code.</p>
+  </section>
+
+  <!-- SCREEN: CHAT -->
+  <section class="screen" id="screen-chat">
+    <div class="chat-header">
+      <button class="back-btn" id="leaveChat">&larr; End chat</button>
+      <button class="verify-pill" id="verifyPill">
+        <span class="dot dot-small connected"></span> Verify safety number
+      </button>
+    </div>
+
+    <div class="safety-panel" id="safetyPanel" hidden>
+      <p class="safety-label">SAFETY NUMBER — read this aloud, both phones should match</p>
+      <div class="safety-number" id="safetyNumber"></div>
+      <p class="safety-note">This confirms your connection wasn't intercepted when you exchanged codes.</p>
+    </div>
+
+    <div class="messages" id="messages"></div>
+
+    <form class="composer" id="composer">
+      <input type="text" id="messageInput" class="msg-input" placeholder="Message" autocomplete="off">
+      <button type="submit" class="send-btn" aria-label="Send">&uarr;</button>
+    </form>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
+<script src="crypto.js"></script>
+<script src="webrtc.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
